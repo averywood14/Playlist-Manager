@@ -1,0 +1,73 @@
+﻿@page "/songdetails/{songId}"
+@using Project2_PlaylistManager__.Data
+@inject IPlaylistService playlistService
+@inject NavigationManager nav;
+
+<!--Displays the information about the selected song -->
+<h3>Song Details: @song.Title</h3>
+
+<!--Creating a table for the information-->
+    <table class="table">
+        <thead>
+            <tr>
+                <!--The different columns in the table-->
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Genre</th>
+                <th>Duration (seconds)</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+                <tr>
+                    <td>
+                        <a href=@($"SongDetails/{song.SongId}")>@song.Title</a>
+                    </td>
+                    <!--Displays the Artist, Genre, and Duration of the song-->
+                    <td>@song.Artist</td>
+                    <td>@song.Genre</td>
+                    <td>@song.Duration</td>
+                </tr>
+            
+        </tbody>
+    </table>
+<!--Navigates back to the playlist-->
+<button class="btn btn-primary" @onclick="Back">Back to Playlist</button>
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Parameter] public string SongId { get; set; }
+
+    private Song song;
+
+    /// <summary>
+    /// Calls the services and naviagtes to the RemoveSong method 
+    /// </summary>
+    /// <param name="song">The song the user wishes to remove</param>
+    private void RemoveSong(Song song)
+    {
+        playlistService.RemoveSong(song);
+    }
+
+    /// <summary>
+    /// For the selected song it calls the service and navigates to the get song method 
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        song = playlistService.GetSong(SongId);
+    }
+
+    /// <summary>
+    /// Navigates back to the playlist page
+    /// </summary>
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/display");
+    }
+
+}
+

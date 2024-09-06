@@ -1,0 +1,76 @@
+﻿@page "/albumdetails/{albumId}"
+@using Project2_PlaylistManager__.Data
+@inject IPlaylistService playlistService
+@inject NavigationManager nav;
+<!--Displays the information about the selected album -->
+<h3>Album Details: @album.Title (@album.ReleaseDate)</h3>
+
+<!--Creating a table for the information-->
+<table class="table">
+    <thead>
+        <tr>
+            <!--The different columns in the table-->
+            <th>&nbsp;</th>
+            <th>Song Title</th>
+            <th>Artist</th>
+            <th>Genre</th>
+            <th>Duration (seconds)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{int i = 1;}
+        @foreach (var song in albumSongs)
+        {
+            <tr>
+                <td>@i</td>
+                <td>
+                    <a href=@($"SongDetails/{song.SongId}")>@song.Title</a>
+                </td>
+                <!--Displays the Artist, Genre, and Duration of the song-->
+                <td>@song.Artist</td>
+                <td>@song.Genre</td>
+                <td>@song.Duration</td>
+            </tr>
+            i++;
+        }
+        <tr>
+            <td colspan="4">Total Runtime</td>
+            <td>@albumRuntime</td>
+        </tr>
+    </tbody>
+</table>
+<!--Navigates back to the playlist-->
+<button class="btn btn-primary" @onclick="Back">Back to Playlist</button>
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Parameter] public string AlbumId { get; set; }
+
+    private Album album;
+    private List<Song> albumSongs;
+    private Double albumRuntime;
+
+    /// <summary>
+    /// For the selected album it calls the service and navigates to the get album method
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        album = playlistService.GetAlbum(AlbumId);
+        albumSongs = playlistService.GetAlbumSongs(AlbumId);
+        albumRuntime = albumSongs.Sum(song => song.Duration);
+    }
+
+    /// <summary>
+    /// Navigates back to the playlist page
+    /// </summary>
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/display");
+    }
+
+}
+

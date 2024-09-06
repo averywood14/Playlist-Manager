@@ -1,0 +1,149 @@
+﻿@page "/addsong"
+@using Project2_PlaylistManager__.Data
+@inject IPlaylistService playlistService
+@inject NavigationManager nav
+
+<h3>Add a new song</h3>
+
+<div>
+    <div class="form-group">
+        <!--Displays a drop down list of the added albums and whichever is seleted chooses that albumId-->
+        <label for="album">Album (optional)</label>
+        <select class="form-control form-select" id="album" @bind="@SelectedAlbumID">
+            <option value="">--None--</option>
+            @foreach (Album album in Albums)
+            {
+                <option value="@album.AlbumId">@album.Title</option>
+            }
+        </select>
+    </div>
+    <!--Displays text boxes that asks the user to enter the Song Title, Artist, Duration, and Genre of the song-->
+    <div class="form-group">
+        <label for="title">Song Title</label>
+        <input type="text" class="form-control" id="title" @bind="@NewSong.Title">
+    </div>
+    <div class="form-group">
+        <label for="artist">Artist</label>
+        <input type="text" class="form-control" id="artist" @bind="@NewSong.Artist">
+    </div>
+    <div class="form-group">
+        <label for="duration">Duration (seconds)</label>
+        <input type="number" class="form-control" id="duration" @bind="@NewSong.Duration">
+    </div>
+    <div class="form-group">
+        <label for="genre">Genre</label>
+        <select class="form-control form-select" id="genre" @bind="@NewSong.Genre">
+            <option value=""></option>
+            @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
+            {
+                <option>@genre</option>
+            }
+        </select>
+    </div>
+    <br />
+    <!--Button that when clicked adds the current song to the playlist and promts the user for another song-->
+    <button type="submit" class="btn btn-primary" @onclick="OnAddSong">Add Another Song</button>
+    &nbsp;
+    <!--Button that when clicked adds the song to the playlist-->
+    <button type="submit" class="btn btn-primary" @onclick="OnDone">Done</button>
+</div>
+
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    private Song NewSong = new Song("", "", 0, null, null);
+    private List<Album> Albums = new List<Album>();
+
+    private string selectedAlbumId;
+
+    //Stores the id of the selected album
+    private string SelectedAlbumID
+    {
+        get => selectedAlbumId;
+        set => SetSelectedAlbumId(value);
+    }
+
+    /// <summary>
+    /// Async method that sets the AlbumId and gets the album from the service
+    /// it matches the album artist to the new song artist 
+    /// </summary>
+    /// <param name="value">The value of the album chosen</param>
+    private async void SetSelectedAlbumId(string value)
+    {
+        this.selectedAlbumId = value;
+        if (!String.IsNullOrEmpty(value))
+        {
+            await Task.Delay(1);
+            this.SelectedAlbum = playlistService.GetAlbum(selectedAlbumId);
+            this.NewSong.Artist = this.SelectedAlbum.Artist;
+        }
+        else
+        {
+            await Task.Delay(1);
+            this.SelectedAlbum = null;
+            this.NewSong.Artist = null;
+        }
+        StateHasChanged();
+    }
+
+    protected Album SelectedAlbum;
+
+    /// <summary>
+    /// Retrieves the list of albums from the service 
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Albums = playlistService.GetAlbums();
+    }
+
+    /// <summary>
+    /// Is called when the user adds a song to the playlist and assigns the selected album to the new song
+    /// if an album is chosen. If the Genre or title is not inserted it sets them to null
+    /// </summary>
+    private void OnAddSong()
+    {
+        if (SelectedAlbumID != null)
+        {
+            NewSong.Album = SelectedAlbum;
+        }
+
+        if (String.IsNullOrEmpty(NewSong.Genre.ToString()))
+        {
+            NewSong.Genre = null;
+        }
+        if (!String.IsNullOrEmpty(NewSong.Title))
+        {
+            playlistService.AddSong(NewSong);
+        }
+        selectedAlbumId = null;
+        SelectedAlbum = null;
+        NewSong = new Song("", "", 0, null, null);
+    }
+
+    /// <summary>
+    /// When the user is finished adding songs and clicks the done button
+    /// The album is assigned to the song and if a Genre or Title was not inserted both properties are null
+    /// Naviagtes back to the home page 
+    /// </summary>
+    private void OnDone()
+    {
+        if (SelectedAlbumID != null)
+        {
+            NewSong.Album = SelectedAlbum;
+        }
+
+        if (String.IsNullOrEmpty(NewSong.Genre.ToString()))
+        {
+            NewSong.Genre = null;
+        }
+        if (!String.IsNullOrEmpty(NewSong.Title))
+        {
+            playlistService.AddSong(NewSong);
+        }
+        NavigationManager.NavigateTo("/");
+    }
+}

@@ -1,0 +1,59 @@
+﻿@page "/addalbum"
+@using Project2_PlaylistManager__.Data
+@inject IPlaylistService playlistService
+@inject NavigationManager nav
+
+<h3>Add a new album</h3>
+
+<!--Displays text boxes for the user to enter the Title, Artist, Release Date,
+    Band Members, and the cover art for the album-->
+<div>
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" @bind="@NewAlbum.Title">
+    </div>
+    <div class="form-group">
+        <label for="artist">Artist</label>
+        <input type="text" class="form-control" id="artist" @bind="@NewAlbum.Artist">
+    </div>
+    <div class="form-group">
+        <label for="releaseDate">Release Date</label>
+        <input type="date" class="form-control" id="releaseDate" @bind="@NewAlbum.ReleaseDate" placeholder="yyyy-MM-dd">
+    </div>
+    <div class="form-group">
+        <label for="bandMembers">Band Members</label>
+        <input type="text" class="form-control" id="bandmembers" @bind="@BandMembersAsString">
+    </div>
+    <div class="form-group">
+        <label for="albumImageURL">Album Artwork URL</label>
+        <input type="text" class="form-control" id="albumImageURL" @bind="@NewAlbum.AlbumArtURL">
+    </div>
+    <br />
+    <!--A button that when clicked adds an album to the list of albums-->
+    <button type="submit" class="btn btn-primary" @onclick="OnAddAlbum">Add Album</button>
+</div>
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    private Album NewAlbum = new Album("", "", null, new List<string>(), "");
+
+    // Seperating the band members and adding them to the list of band members
+    private string BandMembersAsString
+    {
+        get => string.Join(", ", NewAlbum.BandMembers);
+        set => NewAlbum.BandMembers = value.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).ToList();
+    }
+
+    /// <summary>
+    /// Adds an album to the list and automatically takes the user to the add song page
+    /// </summary>
+    private void OnAddAlbum()
+    {
+        playlistService.AddAlbum(NewAlbum);
+        NewAlbum = new Album("", "", null, new List<string>(), "");
+        NavigationManager.NavigateTo("./addsong");
+    }
+}

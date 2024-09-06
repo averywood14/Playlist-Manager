@@ -1,0 +1,132 @@
+﻿@page "/display"
+@using Project2_PlaylistManager__.Data
+@inject IJSRuntime JsRuntime
+@inject IPlaylistService playlistService
+@inject NavigationManager nav;
+
+<h3>Playlist: @playlist.Title</h3>
+<!--Creating a table of the songs in the playlist -->
+@if (playlist.songs.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <!--The different columns in the table -->
+                <th>&nbsp;</th>
+                <th>Album Art</th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Genre</th>
+                <th>Duration (seconds)</th>
+                <th>Album Title</th>
+                <th>Release Date</th>
+                <th>Remove Song</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <!--Foreach loop that cycles through displaying the information for each song in the playlist-->
+            @{ int i = 1; }
+            @foreach (var song in playlist.songs)
+            {
+                <tr>
+                    <td>@i</td>
+                    <!--If an album was chosen it will display the corresponding album art-->
+                    @if (song.Album != null)
+                    {
+                        <td><a href=@($"AlbumDetails/{song.Album.AlbumId}")><img src="@song.Album.AlbumArtURL" alt="Album Art" style="max-width: 100px; max-height: 100px;" /></a></td>
+                    }
+                    else
+                    {
+                        <td />
+                    }
+                    <td>
+                        <a href=@($"SongDetails/{song.SongId}")>@song.Title</a>
+                    </td>
+                    <!--Displays the song details-->
+                    <td>@song.Artist</td>
+                    <td>@song.Genre</td>
+                    <td>@song.Duration</td>
+                    <!--Displays the album details if an album was chosen-->
+                    @if (song.Album != null)
+                    {
+                        <td><a href=@($"AlbumDetails/{song.Album.AlbumId}")>@song.Album.Title</a></td>
+                        <!--This should be a link to show the details of a given album-->
+                        <td>@song.Album.ReleaseDate?.ToString("yyyy-MM-dd")</td>
+                    }
+                    else
+                    {
+                        <td />
+                        <td />
+                    }
+                    <!--Gives the user an option to remove the song from the playlist-->
+                    <td><button class="btn btn-primary" @onclick="@(() => RemoveSong(song))">Remove</button></td>
+
+                </tr>
+                i++;
+            }
+            <tr>
+                <td colspan="5">Total Runtime</td>
+                <td>@playlist.totalRuntime</td>
+                <td colspan="3">&nbsp;</td>
+            </tr>
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No songs in the playlist.</p>
+}
+
+<!--Gives the user an option to shuffle the playlist-->
+<button class="btn btn-primary" @onclick="ShufflePlaylist">Shuffle</button>
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    private Playlist playlist;
+
+    /// <summary>
+    /// Assignes the new playlist to the GetPlaylist method in the service
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        playlist = playlistService.GetPlaylist();
+    }
+
+    /// <summary>
+    /// Method that calls the service and goes to the shuffle method
+    /// </summary>
+    private void ShufflePlaylist()
+    {
+        playlistService.Shuffle();
+    }
+
+    /// <summary>
+    /// Method that calls the service and goes to the Remove song method
+    /// </summary>
+    /// <param name="song">The song the user wishes to remove</param>
+    private async Task RemoveSong(Song song)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you wish to delete {song.Title} from the playlist?");
+        if (confirmed)
+        {
+            playlistService.RemoveSong(song);
+        }
+    }
+
+    /// <summary>
+    /// If the song title is clicked it will go to the song details page
+    /// and display the information about the song
+    /// </summary>
+    /// <param name="songId">The Id of the song the user wishes to see</param>
+    private void NavigateToSong(string songId)
+    {
+        NavigationManager.NavigateTo("/songdetails/" + songId);
+    }
+}
+
+

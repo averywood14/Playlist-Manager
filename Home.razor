@@ -1,0 +1,92 @@
+﻿@page "/"
+@using Project2_PlaylistManager__.Data
+@using Project2_PlaylistManager__.Pages
+@inject IPlaylistService playlistService
+@inject NavigationManager nav;
+
+
+<PageTitle>Playlist Manager</PageTitle>
+
+<h1>Welcome to the PlayList Manager</h1>
+<br />
+<br />
+
+<!--Will cycle through if the input for a playlist title is not valid-->
+@if (!playlistService.hasValidTitle())
+{
+    <div>
+        What would you like to name this playlist:
+        <form>
+            <input @bind="playlist.Title" />
+            <br />
+            <br />
+            <button type="submit" class="btn btn-secondary" @onclick="AddASong">Create Playlist</button>
+        </form>
+        <br />
+        <br />
+    </div>
+}
+else
+{
+    <div>
+        <!--if the title is valid it gives the user options of what to do with their playlist-->
+        Select what you wish to do with the @playlist.Title playlist
+        <br />
+        <br />
+
+        <button class="btn btn-secondary" @onclick="AddAAlbum">Add an Album</button>
+        <br />
+        <br />
+
+        <button class="btn btn-secondary" @onclick="AddASong">Add a Song</button>
+        <br />
+        <br />
+
+        <button class="btn btn-secondary" @onclick="DisplayPlaylist">Display Playlist</button>
+        <br />
+        <br />
+    </div>
+}
+
+
+
+@code {
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public Playlist playlist
+    {
+        get => playlistService.GetPlaylist();
+    }
+
+    /// <summary>
+    /// If the user wishes to add a song it will
+    /// navigate to the addsong page 
+    /// </summary>
+    private void AddASong()
+    {
+        NavigationManager.NavigateTo("/addsong");
+    }
+
+    /// <summary>
+    /// If the user wishes to add an album
+    /// it will navigate to the add album page 
+    /// </summary>
+    private void AddAAlbum()
+    {
+        NavigationManager.NavigateTo("/addalbum");
+    }
+
+    /// <summary>
+    /// If the user wishes to display the playlist
+    /// it will navigate to the display page 
+    /// </summary>
+    private void DisplayPlaylist()
+    {
+        NavigationManager.NavigateTo("/display");
+    }
+}
+
+
+
